@@ -182,53 +182,52 @@
 
     // 2. FETCH DATA FUNCTION
     window.fetchHunter = async () => {
-        window.fetchHunter = async () => {
-    // 1. Get value from input
-    const hunterNameInput = document.getElementById('target-name').value.trim();
-    
-    if(!hunterNameInput) {
-        notify("ENTER A NAME");
-        return;
-    }
-
-    // 2. Point to the 'hunters' collection
-    const huntersRef = collection(db, "hunters"); 
-    
-    // 3. Create the query
-    const q = query(huntersRef, where("name", "==", hunterNameInput));
-    
-    try {
-        const snapshot = await getDocs(q);
-        console.log("Docs found in 'hunters':", snapshot.size);
-
-        if (snapshot.empty) {
-            notify("HUNTER NOT FOUND IN 'HUNTERS' COLLECTION");
-            // Helpful debug:
-            console.log("Searching for:", hunterNameInput);
+        // 1. Get value from input
+        const hunterNameInput = document.getElementById('target-name').value.trim();
+        
+        if(!hunterNameInput) {
+            notify("ENTER A NAME");
             return;
         }
 
-        snapshot.forEach((userDoc) => {
-            currentHunterDocId = userDoc.id;
-            const data = userDoc.data();
-            
-            // Map the data to your UI fields
-            document.getElementById('ed-lvl').value = data.level || 0;
-            document.getElementById('ed-exp').value = data.exp || 0;
-            document.getElementById('ed-points').value = data.points || 0;
-            document.getElementById('ed-job').value = data.job || "None";
-            document.getElementById('ed-quest').value = data.questCompleted || false;
-            document.getElementById('ed-cargo').value = JSON.stringify(data.cargo || {}, null, 2);
-            
-            // Show the editor
-            document.getElementById('editor-ui').classList.remove('hidden');
-            notify(`FETCHED: ${hunterNameInput.toUpperCase()}`);
-        });
-    } catch (error) {
-        console.error("Fetch Error:", error);
-        notify("SYSTEM ERROR: CHECK CONSOLE");
-    }
-};
+        // 2. Point to the 'hunters' collection
+        const huntersRef = collection(db, "hunters"); 
+        
+        // 3. Create the query
+        const q = query(huntersRef, where("name", "==", hunterNameInput));
+        
+        try {
+            const snapshot = await getDocs(q);
+            console.log("Docs found in 'hunters':", snapshot.size);
+
+            if (snapshot.empty) {
+                notify("HUNTER NOT FOUND IN 'HUNTERS' COLLECTION");
+                // Helpful debug:
+                console.log("Searching for:", hunterNameInput);
+                return;
+            }
+
+            snapshot.forEach((userDoc) => {
+                currentHunterDocId = userDoc.id;
+                const data = userDoc.data();
+                
+                // Map the data to your UI fields
+                document.getElementById('ed-lvl').value = data.level || 0;
+                document.getElementById('ed-exp').value = data.exp || 0;
+                document.getElementById('ed-points').value = data.points || 0;
+                document.getElementById('ed-job').value = data.job || "None";
+                document.getElementById('ed-quest').value = data.questCompleted || false;
+                document.getElementById('ed-cargo').value = JSON.stringify(data.cargo || {}, null, 2);
+                
+                // Show the editor
+                document.getElementById('editor-ui').classList.remove('hidden');
+                notify(`FETCHED: ${hunterNameInput.toUpperCase()}`);
+            });
+        } catch (error) {
+            console.error("Fetch Error:", error);
+            notify("SYSTEM ERROR: CHECK CONSOLE");
+        }
+    };
     // 3. APPLY CHANGES FUNCTION
     window.applyChanges = async () => {
         if(!currentHunterDocId) return;
