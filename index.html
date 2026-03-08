@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYSTEM OVERRIDE | ARCHITECT MODE</title>
+    <title>ARCHITECT TERMINAL | OVERRIDE MODE</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --admin-red: #ff0044;
             --system-bg: #050505;
-            --card-bg: #111;
-            --border: #222;
+            --panel-bg: #0a0a0a;
+            --border: #1a1a1a;
             --text: #eee;
+            --highlight: #00ff95;
         }
 
         body {
@@ -19,151 +20,160 @@
             color: var(--text);
             font-family: 'JetBrains Mono', monospace;
             margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
+            height: 100vh;
         }
 
-        .terminal-container {
-            width: 100%;
-            max-width: 800px;
-            border: 2px solid var(--admin-red);
-            box-shadow: 0 0 20px rgba(255, 0, 68, 0.2);
-            background: #000;
-        }
-
-        .header {
-            padding: 20px;
-            border-bottom: 2px solid var(--admin-red);
-            text-align: center;
-            background: rgba(255, 0, 68, 0.1);
-        }
-
-        .search-section {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            gap: 10px;
-        }
-
-        input, select, textarea {
-            background: #0a0a0a;
-            border: 1px solid var(--border);
-            color: #fff;
-            padding: 12px;
-            font-family: inherit;
-        }
-
-        input:focus { border-color: var(--admin-red); outline: none; }
-
-        .editor-grid {
+        /* Responsive Layout */
+        .layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            padding: 20px;
+            grid-template-columns: 300px 1fr;
+            height: 100vh;
         }
 
-        .field-group {
+        @media (max-width: 768px) {
+            .layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: 40% 60%;
+            }
+            body { overflow: auto; height: auto; }
+        }
+
+        /* Sidebar Directory */
+        .sidebar {
+            background: var(--panel-bg);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            gap: 5px;
-            margin-bottom: 15px;
+            overflow: hidden;
         }
 
-        label {
-            font-size: 0.7rem;
-            color: #666;
-            text-transform: uppercase;
+        .sidebar-header {
+            padding: 15px;
+            border-bottom: 2px solid var(--admin-red);
+            text-align: center;
         }
+
+        .hunter-list {
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .hunter-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .hunter-item:hover { background: rgba(255, 0, 68, 0.1); }
+        .hunter-item.active { border-left: 4px solid var(--admin-red); background: rgba(255, 0, 68, 0.15); }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .profile-card {
+            background: #0f0f0f;
+            border: 1px solid var(--border);
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        input, select, textarea {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 10px;
+            font-family: inherit;
+            box-sizing: border-box;
+            margin-top: 5px;
+        }
+
+        label { font-size: 0.6rem; color: #666; text-transform: uppercase; }
 
         .btn {
             cursor: pointer;
             border: none;
-            padding: 15px;
+            padding: 12px;
             font-weight: bold;
-            transition: 0.3s;
             text-transform: uppercase;
+            font-family: inherit;
+            margin-top: 10px;
         }
 
-        .btn-fetch { background: var(--admin-red); color: white; width: 150px; }
-        .btn-update { background: #00ff95; color: black; width: 100%; margin-top: 20px; }
-        .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px currentColor; }
-
-        .status-msg {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            background: #000;
-            border: 1px solid var(--admin-red);
-            font-size: 0.8rem;
-            animation: slideIn 0.3s ease-out;
+        .btn-save { background: var(--highlight); color: #000; width: 100%; }
+        .btn-delete { 
+            background: transparent; 
+            border: 1px solid #444; 
+            color: #444; 
+            font-size: 0.7rem; 
+            margin-top: 30px;
+            width: 100%;
         }
+        .btn-delete:hover { border-color: var(--admin-red); color: var(--admin-red); }
 
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .placeholder { text-align: center; color: #222; margin-top: 50px; }
         .hidden { display: none; }
+
     </style>
 </head>
 <body>
 
-<div class="terminal-container">
-    <div class="header">
-        <h1 style="margin:0; font-size: 1.2rem; letter-spacing: 4px;">ARCHITECT OVERRIDE TERMINAL</h1>
-        <p style="font-size: 0.6rem; color: var(--admin-red); margin: 5px 0 0;">AUTHENTICATION: GRANTED (GOD-MODE)</p>
+<div class="layout">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span style="color: var(--admin-red); font-size: 0.8rem;">SYSTEM DIRECTORY</span>
+        </div>
+        <div id="hunter-list" class="hunter-list"></div>
     </div>
 
-    <div class="search-section">
-        <input type="text" id="target-name" placeholder="ENTER HUNTER NAME..." style="flex-grow:1;">
-        <button class="btn btn-fetch" onclick="fetchHunter()">FETCH DATA</button>
-    </div>
-
-    <div id="editor-ui" class="hidden">
-        <div class="editor-grid">
-            <div class="col">
-                <div class="field-group">
-                    <label>Level</label>
-                    <input type="number" id="ed-lvl">
-                </div>
-                <div class="field-group">
-                    <label>Total Experience</label>
-                    <input type="number" id="ed-exp">
-                </div>
-                <div class="field-group">
-                    <label>Available Stat Points</label>
-                    <input type="number" id="ed-points">
-                </div>
-            </div>
-            <div class="col">
-                <div class="field-group">
-                    <label>Job Title</label>
-                    <input type="text" id="ed-job">
-                </div>
-                <div class="field-group">
-                    <label>Quest Status (Today)</label>
-                    <select id="ed-quest">
-                        <option value="false">⚠️ INCOMPLETE</option>
-                        <option value="true">✅ COMPLETED</option>
-                    </select>
-                </div>
-            </div>
+    <div class="main-content">
+        <div id="placeholder" class="placeholder">
+            <h2>[ SELECT SUBJECT ]</h2>
         </div>
 
-        <div style="padding: 0 20px 20px;">
-            <div class="field-group">
-                <label>Inventory Management (JSON Format)</label>
-                <textarea id="ed-cargo" style="height: 120px; color: #ffaa00; font-size: 0.8rem;"></textarea>
+        <div id="editor-ui" class="profile-card hidden">
+            <h3 id="display-name" style="color:var(--admin-red); margin:0 0 15px 0;">---</h3>
+            
+            <div class="grid">
+                <div><label>Level</label><input type="number" id="ed-lvl"></div>
+                <div><label>Stat Points</label><input type="number" id="ed-points"></div>
+                <div><label>Exp</label><input type="number" id="ed-exp"></div>
+                <div><label>Job</label><input type="text" id="ed-job"></div>
             </div>
-            <button class="btn btn-update" onclick="applyChanges()">APPLY SYSTEM OVERRIDE</button>
+
+            <div style="margin-top:15px;">
+                <label>Quest Completed</label>
+                <select id="ed-quest">
+                    <option value="false">NO</option>
+                    <option value="true">YES</option>
+                </select>
+            </div>
+
+            <div style="margin-top:15px;">
+                <label>Inventory (JSON)</label>
+                <textarea id="ed-cargo" style="height: 100px;"></textarea>
+            </div>
+
+            <button class="btn btn-save" onclick="applyOverride()">APPLY OVERRIDE</button>
+            
+            <!-- DELETE BUTTON -->
+            <button class="btn btn-delete" onclick="deleteHunter()">DELETE SUBJECT FROM SYSTEM</button>
         </div>
     </div>
 </div>
 
-<div id="toast" class="status-msg hidden"></div>
-
 <script type="module">
-    // 1. IMPORT YOUR FIREBASE CONFIG
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, getDocs, collection, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBBveJmrWxVnnalA34G7KZR6COhrOcxiok",
@@ -177,61 +187,49 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    let activeDocId = null;
 
-    let currentHunterDocId = null;
+    window.loadDirectory = async () => {
+        const list = document.getElementById('hunter-list');
+        const snap = await getDocs(collection(db, "hunters"));
+        let hunters = [];
+        snap.forEach(doc => hunters.push({id: doc.id, ...doc.data()}));
+        hunters.sort((a,b) => a.name.localeCompare(b.name));
 
-    // 2. FETCH DATA FUNCTION
-    window.fetchHunter = async () => {
-        // 1. Get value from input
-        const hunterNameInput = document.getElementById('target-name').value.trim();
+        list.innerHTML = hunters.map(h => `
+            <div class="hunter-item" onclick="viewHunter('${h.id}', this)">
+                <span>${h.name}</span>
+                <span style="color:#444; font-size:0.6rem;">Lvl ${h.level}</span>
+            </div>
+        `).join('');
+    };
+
+    window.viewHunter = async (id, el) => {
+        document.querySelectorAll('.hunter-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
         
-        if(!hunterNameInput) {
-            notify("ENTER A NAME");
-            return;
-        }
-
-        // 2. Point to the 'hunters' collection
-        const huntersRef = collection(db, "hunters"); 
-        
-        // 3. Create the query
-        const q = query(huntersRef, where("name", "==", hunterNameInput));
-        
-        try {
-            const snapshot = await getDocs(q);
-            console.log("Docs found in 'hunters':", snapshot.size);
-
-            if (snapshot.empty) {
-                notify("HUNTER NOT FOUND IN 'HUNTERS' COLLECTION");
-                // Helpful debug:
-                console.log("Searching for:", hunterNameInput);
-                return;
+        const snap = await getDoc(doc(db, "hunters", id));
+        if(snap.exists()){
+            activeDocId = id;
+            const data = snap.data();
+            document.getElementById('display-name').innerText = data.name.toUpperCase();
+            document.getElementById('ed-lvl').value = data.level;
+            document.getElementById('ed-exp').value = data.exp;
+            document.getElementById('ed-points').value = data.points;
+            document.getElementById('ed-job').value = data.job;
+            document.getElementById('ed-quest').value = data.questCompleted || false;
+            document.getElementById('ed-cargo').value = JSON.stringify(data.cargo || {}, null, 2);
+            document.getElementById('placeholder').classList.add('hidden');
+            document.getElementById('editor-ui').classList.remove('hidden');
+            
+            // On mobile, scroll down to the editor automatically
+            if(window.innerWidth <= 768) {
+                document.getElementById('editor-ui').scrollIntoView({behavior: 'smooth'});
             }
-
-            snapshot.forEach((userDoc) => {
-                currentHunterDocId = userDoc.id;
-                const data = userDoc.data();
-                
-                // Map the data to your UI fields
-                document.getElementById('ed-lvl').value = data.level || 0;
-                document.getElementById('ed-exp').value = data.exp || 0;
-                document.getElementById('ed-points').value = data.points || 0;
-                document.getElementById('ed-job').value = data.job || "None";
-                document.getElementById('ed-quest').value = data.questCompleted || false;
-                document.getElementById('ed-cargo').value = JSON.stringify(data.cargo || {}, null, 2);
-                
-                // Show the editor
-                document.getElementById('editor-ui').classList.remove('hidden');
-                notify(`FETCHED: ${hunterNameInput.toUpperCase()}`);
-            });
-        } catch (error) {
-            console.error("Fetch Error:", error);
-            notify("SYSTEM ERROR: CHECK CONSOLE");
         }
     };
-    // 3. APPLY CHANGES FUNCTION
-    window.applyChanges = async () => {
-        if(!currentHunterDocId) return;
 
+    window.applyOverride = async () => {
         try {
             const updated = {
                 level: Number(document.getElementById('ed-lvl').value),
@@ -241,22 +239,27 @@
                 questCompleted: document.getElementById('ed-quest').value === "true",
                 cargo: JSON.parse(document.getElementById('ed-cargo').value)
             };
+            await updateDoc(doc(db, "hunters", activeDocId), updated);
+            alert("OVERRIDE COMPLETE");
+            loadDirectory();
+        } catch(e) { alert("ERROR IN DATA"); }
+    };
 
-            await updateDoc(doc(db, "hunters", currentHunterDocId), updated);
-            notify("OVERRIDE SUCCESSFUL");
-        } catch (e) {
-            notify("ERROR: INVALID DATA FORMAT");
-            console.error(e);
+    // --- DELETE FUNCTION ---
+    window.deleteHunter = async () => {
+        const confirmName = prompt("TO DELETE, TYPE 'CONFIRM':");
+        if(confirmName === "CONFIRM") {
+            await deleteDoc(doc(db, "hunters", activeDocId));
+            alert("SUBJECT REMOVED FROM SYSTEM");
+            activeDocId = null;
+            document.getElementById('editor-ui').classList.add('hidden');
+            document.getElementById('placeholder').classList.remove('hidden');
+            loadDirectory();
         }
     };
 
-    function notify(text) {
-        const t = document.getElementById('toast');
-        t.innerText = `[ ${text} ]`;
-        t.classList.remove('hidden');
-        setTimeout(() => t.classList.add('hidden'), 3000);
-    }
+    loadDirectory();
 </script>
-
 </body>
 </html>
+
