@@ -225,7 +225,7 @@
                 cargo: JSON.parse(document.getElementById('ed-cargo').value)
             };
 
-            await updateDoc(doc(db, "users", currentHunterDocId), updated);
+            await updateDoc(doc(db, "hunters", currentHunterDocId), updated);
             notify("OVERRIDE SUCCESSFUL");
         } catch (e) {
             notify("ERROR: INVALID DATA FORMAT");
