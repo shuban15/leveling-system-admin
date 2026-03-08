@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYSTEM OVERRIDE | ARCHITECT MODE</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --admin-red: #ff0044;
+            --system-bg: #050505;
+            --card-bg: #111;
+            --border: #222;
+            --text: #eee;
+        }
+
+        body {
+            background-color: var(--system-bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .terminal-container {
+            width: 100%;
+            max-width: 800px;
+            border: 2px solid var(--admin-red);
+            box-shadow: 0 0 20px rgba(255, 0, 68, 0.2);
+            background: #000;
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 2px solid var(--admin-red);
+            text-align: center;
+            background: rgba(255, 0, 68, 0.1);
+        }
+
+        .search-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+
+        input, select, textarea {
+            background: #0a0a0a;
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 12px;
+            font-family: inherit;
+        }
+
+        input:focus { border-color: var(--admin-red); outline: none; }
+
+        .editor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .btn {
+            cursor: pointer;
+            border: none;
+            padding: 15px;
+            font-weight: bold;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-fetch { background: var(--admin-red); color: white; width: 150px; }
+        .btn-update { background: #00ff95; color: black; width: 100%; margin-top: 20px; }
+        .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px currentColor; }
+
+        .status-msg {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #000;
+            border: 1px solid var(--admin-red);
+            font-size: 0.8rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="terminal-container">
+    <div class="header">
+        <h1 style="margin:0; font-size: 1.2rem; letter-spacing: 4px;">ARCHITECT OVERRIDE TERMINAL</h1>
+        <p style="font-size: 0.6rem; color: var(--admin-red); margin: 5px 0 0;">AUTHENTICATION: GRANTED (GOD-MODE)</p>
+    </div>
+
+    <div class="search-section">
+        <input type="text" id="target-name" placeholder="ENTER HUNTER NAME..." style="flex-grow:1;">
+        <button class="btn btn-fetch" onclick="fetchHunter()">FETCH DATA</button>
+    </div>
+
+    <div id="editor-ui" class="hidden">
+        <div class="editor-grid">
+            <div class="col">
+                <div class="field-group">
+                    <label>Level</label>
+                    <input type="number" id="ed-lvl">
+                </div>
+                <div class="field-group">
+                    <label>Total Experience</label>
+                    <input type="number" id="ed-exp">
+                </div>
+                <div class="field-group">
+                    <label>Available Stat Points</label>
+                    <input type="number" id="ed-points">
+                </div>
+            </div>
+            <div class="col">
+                <div class="field-group">
+                    <label>Job Title</label>
+                    <input type="text" id="ed-job">
+                </div>
+                <div class="field-group">
+                    <label>Quest Status (Today)</label>
+                    <select id="ed-quest">
+                        <option value="false">⚠️ INCOMPLETE</option>
+                        <option value="true">✅ COMPLETED</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div style="padding: 0 20px 20px;">
+            <div class="field-group">
+                <label>Inventory Management (JSON Format)</label>
+                <textarea id="ed-cargo" style="height: 120px; color: #ffaa00; font-size: 0.8rem;"></textarea>
+            </div>
+            <button class="btn btn-update" onclick="applyChanges()">APPLY SYSTEM OVERRIDE</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="status-msg hidden"></div>
+
+<script type="module">
+    // 1. IMPORT YOUR FIREBASE CONFIG
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDocs, collection, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let currentHunterDocId = null;
+
+    // 2. FETCH DATA FUNCTION
+    window.fetchHunter = async () => {
+        const name = document.getElementById('target-name').value;
+        if(!name) return notify("ENTER A NAME");
+
+        const q = query(collection(db, "users"), where("name", "==", name));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            notify("HUNTER NOT FOUND");
+            return;
+        }
+
+        snapshot.forEach((userDoc) => {
+            currentHunterDocId = userDoc.id;
+            const data = userDoc.data();
+            
+            document.getElementById('ed-lvl').value = data.level;
+            document.getElementById('ed-exp').value = data.exp;
+            document.getElementById('ed-points').value = data.points;
+            document.getElementById('ed-job').value = data.job;
+            document.getElementById('ed-quest').value = data.questCompleted || false;
+            document.getElementById('ed-cargo').value = JSON.stringify(data.cargo, null, 2);
+            
+            document.getElementById('editor-ui').classList.remove('hidden');
+            notify(`DATA RETRIEVED: ${name.toUpperCase()}`);
+        });
+    };
+
+    // 3. APPLY CHANGES FUNCTION
+    window.applyChanges = async () => {
+        if(!currentHunterDocId) return;
+
+        try {
+            const updated = {
+                level: Number(document.getElementById('ed-lvl').value),
+                exp: Number(document.getElementById('ed-exp').value),
+                points: Number(document.getElementById('ed-points').value),
+                job: document.getElementById('ed-job').value,
+                questCompleted: document.getElementById('ed-quest').value === "true",
+                cargo: JSON.parse(document.getElementById('ed-cargo').value)
+            };
+
+            await updateDoc(doc(db, "users", currentHunterDocId), updated);
+            notify("OVERRIDE SUCCESSFUL");
+        } catch (e) {
+            notify("ERROR: INVALID DATA FORMAT");
+            console.error(e);
+        }
+    };
+
+    function notify(text) {
+        const t = document.getElementById('toast');
+        t.innerText = `[ ${text} ]`;
+        t.classList.remove('hidden');
+        setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+</script>
+
+</body>
+</html>
