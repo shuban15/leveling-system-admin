@@ -183,10 +183,12 @@
     // 2. FETCH DATA FUNCTION
     window.fetchHunter = async () => {
         const name = document.getElementById('target-name').value;
-        if(!name) return notify("ENTER A NAME");
+        console.log("Searching for:", name); // Debug Line 1
 
-        const q = query(collection(db, "users"), where("name", "==", name));
+        const q = query(collection(db, "hunters"), where("name", "==", name));
         const snapshot = await getDocs(q);
+
+        console.log("Docs found:", snapshot.size); // Debug Line 2
 
         if (snapshot.empty) {
             notify("HUNTER NOT FOUND");
