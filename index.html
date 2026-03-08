@@ -182,16 +182,29 @@
 
     // 2. FETCH DATA FUNCTION
     window.fetchHunter = async () => {
-        const name = document.getElementById('target-name').value;
-        console.log("Searching for:", name); // Debug Line 1
+        window.fetchHunter = async () => {
+    // 1. Get value from input
+    const hunterNameInput = document.getElementById('target-name').value.trim();
+    
+    if(!hunterNameInput) {
+        notify("ENTER A NAME");
+        return;
+    }
 
-        const q = query(collection(db, "hunters"), where("name", "==", name));
+    // 2. Point to the 'hunters' collection
+    const huntersRef = collection(db, "hunters"); 
+    
+    // 3. Create the query
+    const q = query(huntersRef, where("name", "==", hunterNameInput));
+    
+    try {
         const snapshot = await getDocs(q);
-
-        console.log("Docs found:", snapshot.size); // Debug Line 2
+        console.log("Docs found in 'hunters':", snapshot.size);
 
         if (snapshot.empty) {
-            notify("HUNTER NOT FOUND");
+            notify("HUNTER NOT FOUND IN 'HUNTERS' COLLECTION");
+            // Helpful debug:
+            console.log("Searching for:", hunterNameInput);
             return;
         }
 
@@ -199,18 +212,23 @@
             currentHunterDocId = userDoc.id;
             const data = userDoc.data();
             
-            document.getElementById('ed-lvl').value = data.level;
-            document.getElementById('ed-exp').value = data.exp;
-            document.getElementById('ed-points').value = data.points;
-            document.getElementById('ed-job').value = data.job;
+            // Map the data to your UI fields
+            document.getElementById('ed-lvl').value = data.level || 0;
+            document.getElementById('ed-exp').value = data.exp || 0;
+            document.getElementById('ed-points').value = data.points || 0;
+            document.getElementById('ed-job').value = data.job || "None";
             document.getElementById('ed-quest').value = data.questCompleted || false;
-            document.getElementById('ed-cargo').value = JSON.stringify(data.cargo, null, 2);
+            document.getElementById('ed-cargo').value = JSON.stringify(data.cargo || {}, null, 2);
             
+            // Show the editor
             document.getElementById('editor-ui').classList.remove('hidden');
-            notify(`DATA RETRIEVED: ${name.toUpperCase()}`);
+            notify(`FETCHED: ${hunterNameInput.toUpperCase()}`);
         });
-    };
-
+    } catch (error) {
+        console.error("Fetch Error:", error);
+        notify("SYSTEM ERROR: CHECK CONSOLE");
+    }
+};
     // 3. APPLY CHANGES FUNCTION
     window.applyChanges = async () => {
         if(!currentHunterDocId) return;
